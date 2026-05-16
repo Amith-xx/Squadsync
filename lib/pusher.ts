@@ -68,6 +68,7 @@ export const PUSHER_EVENTS = {
   LOBBY_CREATED: "lobby-created",
   LOBBY_AVAILABLE: "lobby-available",
   LOBBY_EXPIRED: "lobby-expired",
+  LOBBY_STATUS_CHANGED: "lobby-status-changed",
 } as const;
 
 export type PusherEvent = (typeof PUSHER_EVENTS)[keyof typeof PUSHER_EVENTS];

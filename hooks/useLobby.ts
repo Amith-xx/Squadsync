@@ -11,6 +11,7 @@ import type {
   PusherChatMessagePayload,
   PusherTeamsFormedPayload,
   PusherVoteCastPayload,
+  PusherLobbyStatusChangedPayload,
 } from "@/types";
 
 // Subscribes to the Pusher presence channel for a given lobby and wires
@@ -67,6 +68,10 @@ export function useLobby(lobbyId: string | null) {
 
     channel.bind(PUSHER_EVENTS.LOBBY_EXPIRED, () => {
       setStatus("expired");
+    });
+
+    channel.bind(PUSHER_EVENTS.LOBBY_STATUS_CHANGED, (data: PusherLobbyStatusChangedPayload) => {
+      setStatus(data.status);
     });
 
     return () => {

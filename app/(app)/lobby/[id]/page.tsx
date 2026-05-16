@@ -1,9 +1,12 @@
+import { notFound, redirect } from "next/navigation";
+import { Types } from "mongoose";
+import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db/connect";
 import Lobby from "@/lib/db/models/Lobby";
-import { auth } from "@/lib/auth";
-import { notFound } from "next/navigation";
+import User from "@/lib/db/models/User";
+import { LobbyClient } from "@/components/lobby/LobbyClient";
+import type { LobbyClient as LobbyClientType, LobbyPlayerClient, Position, Team } from "@/types";
 
-// TODO (Day 2–4): Live lobby view — player slots, ready-up, team grid, chat, turf voting
 export default async function LobbyPage({
   params,
 }: {
@@ -12,21 +15,49 @@ export default async function LobbyPage({
   const { id } = await params;
   const session = await auth();
 
-  await connectToDatabase();
-  const lobby = await Lobby.findById(id).lean();
+  if (!session?.user?.id) redirect("/login");
 
+  if (!Types.ObjectId.isValid(id)) notFound();
+
+  await connectToDatabase();
+
+  const lobby = await Lobby.findById(id).lean();
   if (!lobby) notFound();
 
-  return (
-    <main className="container py-8">
-      <h1 className="text-2xl font-bold mb-4">Lobby</h1>
-      <p className="text-muted-foreground text-sm">
-        Region: {lobby.region} · Status: {lobby.status}
-      </p>
-      {/* TODO: PlayerSlot ×10, ReadyUpButton, LobbyChat, TeamGrid, TurfVoting */}
-      <p className="mt-4 text-xs text-muted-foreground">
-        Logged in as: {session?.user?.name}
-      </p>
-    </main>
-  );
+  // Populate all players' user data
+  const playerIds = lobby.players.map((p) => p.userId);
+  const users = await User.find({ _id: { $in: playerIds } })
+    .select("name image karmaScore position")
+    .lean();
+
+  const userMap = new Map(users.map((u) => [u._id.toString(), u]));
+
+  const players: LobbyPlayerClient[] = lobby.players.map((p) => {
+    const u = userMap.get(p.userId.toString());
+    return {
+      userId: p.userId.toString(),
+      name: u?.name ?? "Unknown",
+      image: u?.image ?? "",
+      karmaScore: u?.karmaScore ?? 70,
+      position: (u?.position as Position | null) ?? null,
+      isReady: p.isReady,
+      team: (p.team as Team | null) ?? null,
+      joinedAt: p.joinedAt.toISOString(),
+    };
+  });
+
+  const lobbyData: LobbyClientType = {
+    id: lobby._id.toString(),
+    status: lobby.status,
+    region: lobby.region,
+    players,
+    teamA: (lobby.teamA ?? []).map((tid) => tid.toString()),
+    teamB: (lobby.teamB ?? []).map((tid) => tid.toString()),
+    captainA: lobby.captainA ? lobby.captainA.toString() : null,
+    captainB: lobby.captainB ? lobby.captainB.toString() : null,
+    expiresAt: lobby.expiresAt ? lobby.expiresAt.toISOString() : null,
+    createdAt: (lobby.createdAt as Date).toISOString(),
+  };
+
+  return <LobbyClient lobby={lobbyData} />;
 }

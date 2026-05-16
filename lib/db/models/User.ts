@@ -35,6 +35,7 @@ const UserSchema = new Schema<UserDocument>(
       default: null,
     },
     onboardingComplete: { type: Boolean, default: false, index: true },
+    region: { type: String, index: true },
   },
   {
     timestamps: { createdAt: "createdAt", updatedAt: false },

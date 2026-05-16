@@ -41,6 +41,7 @@ export interface IUser {
   isBanned: boolean;
   banType: BanType;
   onboardingComplete: boolean;
+  region?: string;
   createdAt: Date;
 }
 
@@ -85,6 +86,41 @@ export interface ILobby {
   scheduledAt: Date | null;
   expiresAt?: Date;
   createdAt: Date;
+}
+
+// ─── Client-safe Lobby Types (serialized for API responses) ───────────────────
+
+export interface LobbyPlayerClient {
+  userId: string;
+  name: string;
+  image: string;
+  karmaScore: number;
+  position: Position | null;
+  isReady: boolean;
+  team: Team | null;
+  joinedAt: string;
+}
+
+export interface LobbyClient {
+  id: string;
+  status: LobbyStatus;
+  region: string;
+  players: LobbyPlayerClient[];
+  teamA: string[];
+  teamB: string[];
+  captainA: string | null;
+  captainB: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface LobbyListItem {
+  id: string;
+  status: LobbyStatus;
+  region: string;
+  playerCount: number;
+  expiresAt: string | null;
+  createdAt: string;
 }
 
 // ─── Score Report ─────────────────────────────────────────────────────────────
@@ -190,6 +226,10 @@ export interface PusherVoteCastPayload {
 export interface PusherScoreSubmittedPayload {
   captainId: string;
   team: Team;
+}
+
+export interface PusherLobbyStatusChangedPayload {
+  status: LobbyStatus;
 }
 
 // ─── Karma Engine Inputs ──────────────────────────────────────────────────────

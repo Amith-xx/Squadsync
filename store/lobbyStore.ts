@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type {
   LobbyStatus,
+  Position,
   PusherChatMessagePayload,
   PusherPlayerJoinedPayload,
 } from "@/types";
@@ -19,11 +20,12 @@ interface ChatMessage {
 
 // ─── Lobby Player Snapshot (populated via Pusher presence) ───────────────────
 
-interface LobbyPlayerState {
+export interface LobbyPlayerState {
   userId: string;
   name: string;
   image: string;
   karmaScore: number;
+  position: Position | null;
   isReady: boolean;
   team: "A" | "B" | null;
 }
@@ -54,6 +56,7 @@ interface LobbyState {
 interface LobbyActions {
   setLobby: (lobbyId: string, region: string, status: LobbyStatus) => void;
   setStatus: (status: LobbyStatus) => void;
+  setPlayers: (players: LobbyPlayerState[]) => void;
   addPlayer: (player: PusherPlayerJoinedPayload) => void;
   removePlayer: (userId: string) => void;
   setPlayerReady: (userId: string, isReady: boolean) => void;
@@ -86,6 +89,8 @@ export const useLobbyStore = create<LobbyState & LobbyActions>((set) => ({
 
   setStatus: (status) => set({ status }),
 
+  setPlayers: (players) => set({ players }),
+
   addPlayer: (player) =>
     set((state) => ({
       players: state.players.some((p) => p.userId === player.userId)
@@ -97,6 +102,7 @@ export const useLobbyStore = create<LobbyState & LobbyActions>((set) => ({
               name: player.name,
               image: player.image,
               karmaScore: player.karmaScore,
+              position: null,
               isReady: false,
               team: null,
             },

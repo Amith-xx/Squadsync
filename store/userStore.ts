@@ -17,6 +17,7 @@ interface UserState {
   banType: BanType;
   onboardingComplete: boolean;
   matchesPlayed: number;
+  region: string | null;
   isLoading: boolean;
 }
 
@@ -24,6 +25,7 @@ interface UserActions {
   setUser: (user: Partial<UserState>) => void;
   setKarma: (karmaScore: number, isBanned: boolean, banType: BanType) => void;
   setOnboardingComplete: (complete: boolean) => void;
+  setRegion: (region: string) => void;
   setLoading: (isLoading: boolean) => void;
   clearUser: () => void;
 }
@@ -40,6 +42,7 @@ const initialState: UserState = {
   banType: null,
   onboardingComplete: false,
   matchesPlayed: 0,
+  region: null,
   isLoading: true,
 };
 
@@ -53,6 +56,8 @@ export const useUserStore = create<UserState & UserActions>((set) => ({
 
   setOnboardingComplete: (complete) =>
     set({ onboardingComplete: complete }),
+
+  setRegion: (region) => set({ region }),
 
   setLoading: (isLoading) => set({ isLoading }),
 

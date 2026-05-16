@@ -52,6 +52,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        /* SquadSync brand tokens */
+        neon: {
+          green: "hsl(152 100% 45%)",
+          yellow: "hsl(48 96% 53%)",
+          red: "hsl(0 84% 60%)",
+        },
+        navy: {
+          darkest: "hsl(222 47% 5%)",
+          dark: "hsl(220 45% 9%)",
+          surface: "hsl(220 40% 12%)",
+          border: "hsl(220 35% 16%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -67,10 +79,30 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "pulse-glow": {
+          "0%, 100%": {
+            boxShadow: "0 0 12px hsl(152 100% 45% / 0.4)",
+          },
+          "50%": {
+            boxShadow:
+              "0 0 24px hsl(152 100% 45% / 0.75), 0 0 48px hsl(152 100% 45% / 0.3)",
+          },
+        },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-glow": "pulse-glow 2.5s ease-in-out infinite",
+        "fade-in-up": "fade-in-up 0.5s ease-out forwards",
+        "fade-in": "fade-in 0.4s ease-out forwards",
       },
     },
   },

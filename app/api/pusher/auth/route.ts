@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { connectToDatabase } from "@/lib/db/connect";
+import User from "@/lib/db/models/User";
 import { getPusherServer } from "@/lib/pusher";
 
 // POST /api/pusher/auth — authenticates private and presence channel subscriptions.
@@ -26,11 +28,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const pusher = getPusherServer();
 
   if (channelName.startsWith("presence-")) {
+    // Fetch karmaScore for richer presence data
+    let karmaScore = 70;
+    try {
+      await connectToDatabase();
+      const user = await User.findById(session.user.id).select("karmaScore").lean();
+      if (user) karmaScore = user.karmaScore;
+    } catch {
+      // Fall back to default — don't block auth
+    }
+
     const presenceData = {
       user_id: session.user.id,
       user_info: {
         name: session.user.name,
         image: session.user.image,
+        karmaScore,
       },
     };
 
