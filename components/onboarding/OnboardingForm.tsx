@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { REGIONS } from "@/lib/regions";
-import type { Position, PlayerAttributes } from "@/types";
+import type { Position, OutfieldAttributes, GKAttributes } from "@/types";
 
 const POSITIONS: { id: Position; label: string; description: string }[] = [
   { id: "GK", label: "Goalkeeper", description: "Last line of defence" },
@@ -12,17 +12,20 @@ const POSITIONS: { id: Position; label: string; description: string }[] = [
   { id: "FWD", label: "Forward", description: "Score the goals" },
 ];
 
-const ATTRIBUTES: {
-  key: keyof PlayerAttributes;
-  label: string;
-  abbr: string;
-  hint: string;
-}[] = [
-  { key: "pace", label: "Pace", abbr: "PAC", hint: "Sprint speed & acceleration" },
-  { key: "shooting", label: "Shooting", abbr: "SHO", hint: "Finishing & shot power" },
-  { key: "passing", label: "Passing", abbr: "PAS", hint: "Short & long passing" },
+const OUTFIELD_ATTRIBUTES: { key: keyof OutfieldAttributes; label: string; abbr: string; hint: string }[] = [
+  { key: "pace",      label: "Pace",      abbr: "PAC", hint: "Sprint speed & acceleration" },
+  { key: "shooting",  label: "Shooting",  abbr: "SHO", hint: "Finishing & shot power" },
+  { key: "passing",   label: "Passing",   abbr: "PAS", hint: "Short & long passing" },
   { key: "defending", label: "Defending", abbr: "DEF", hint: "Tackling & positioning" },
-  { key: "physical", label: "Physical", abbr: "PHY", hint: "Strength & stamina" },
+  { key: "physical",  label: "Physical",  abbr: "PHY", hint: "Strength & stamina" },
+];
+
+const GK_ATTRIBUTES: { key: keyof GKAttributes; label: string; abbr: string; hint: string }[] = [
+  { key: "diving",   label: "Diving",    abbr: "DIV", hint: "Diving range & timing" },
+  { key: "reflex",   label: "Reflexes",  abbr: "REF", hint: "Shot-stopping reactions" },
+  { key: "speed",    label: "Speed",     abbr: "SPD", hint: "Positioning & agility" },
+  { key: "handling", label: "Handling",  abbr: "HAN", hint: "Ball security & catches" },
+  { key: "physical", label: "Physical",  abbr: "PHY", hint: "Strength & stamina" },
 ];
 
 function attrColor(value: number): string {
@@ -38,16 +41,10 @@ function sliderBackground(value: number): string {
   return `linear-gradient(to right, ${color} ${pct}%, hsl(220 40% 14%) ${pct}%)`;
 }
 
-function computeOverall(attrs: PlayerAttributes): number {
-  return Math.round(
-    (attrs.pace + attrs.shooting + attrs.passing + attrs.defending + attrs.physical) / 5,
-  );
-}
-
 interface Props {
   initial?: {
     position?: Position;
-    attributes?: Partial<PlayerAttributes>;
+    attributes?: Partial<OutfieldAttributes> & Partial<GKAttributes>;
     region?: string;
   };
   isEdit?: boolean;
@@ -56,26 +53,32 @@ interface Props {
 export function OnboardingForm({ initial, isEdit = false }: Props) {
   const router = useRouter();
 
-  const [position, setPosition] = useState<Position | null>(
-    initial?.position ?? null,
-  );
-  const [attributes, setAttributes] = useState<PlayerAttributes>({
-    pace: initial?.attributes?.pace ?? 60,
-    shooting: initial?.attributes?.shooting ?? 60,
-    passing: initial?.attributes?.passing ?? 60,
+  const [position, setPosition] = useState<Position | null>(initial?.position ?? null);
+  const [outfieldAttrs, setOutfieldAttrs] = useState<OutfieldAttributes>({
+    pace:      initial?.attributes?.pace      ?? 60,
+    shooting:  initial?.attributes?.shooting  ?? 60,
+    passing:   initial?.attributes?.passing   ?? 60,
     defending: initial?.attributes?.defending ?? 60,
+    physical:  initial?.attributes?.physical  ?? 60,
+  });
+  const [gkAttrs, setGkAttrs] = useState<GKAttributes>({
+    diving:   initial?.attributes?.diving   ?? 60,
+    reflex:   initial?.attributes?.reflex   ?? 60,
+    speed:    initial?.attributes?.speed    ?? 60,
+    handling: initial?.attributes?.handling ?? 60,
     physical: initial?.attributes?.physical ?? 60,
   });
   const [region, setRegion] = useState<string | null>(initial?.region ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAttrChange = useCallback(
-    (key: keyof PlayerAttributes, value: number) => {
-      setAttributes((prev) => ({ ...prev, [key]: value }));
-    },
-    [],
-  );
+  function handleAttrChange(key: string, value: number) {
+    if (position === "GK") {
+      setGkAttrs((prev) => ({ ...prev, [key]: value }));
+    } else {
+      setOutfieldAttrs((prev) => ({ ...prev, [key]: value }));
+    }
+  }
 
   async function handleSubmit() {
     if (!position) {
@@ -90,10 +93,11 @@ export function OnboardingForm({ initial, isEdit = false }: Props) {
     setError(null);
 
     try {
+      const attrs = position === "GK" ? gkAttrs : outfieldAttrs;
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ position, ...attributes, region }),
+        body: JSON.stringify({ position, ...attrs, region }),
       });
 
       const data = await res.json();
@@ -112,7 +116,12 @@ export function OnboardingForm({ initial, isEdit = false }: Props) {
     }
   }
 
-  const overall = computeOverall(attributes);
+  const overall = position === "GK"
+    ? Math.round((gkAttrs.diving + gkAttrs.reflex + gkAttrs.speed + gkAttrs.handling + gkAttrs.physical) / 5)
+    : Math.round((outfieldAttrs.pace + outfieldAttrs.shooting + outfieldAttrs.passing + outfieldAttrs.defending + outfieldAttrs.physical) / 5);
+
+  const activeAttrDefs = position === "GK" ? GK_ATTRIBUTES : OUTFIELD_ATTRIBUTES;
+  const activeAttrs = position === "GK" ? gkAttrs : outfieldAttrs;
 
   return (
     <div className="animate-fade-in-up space-y-8">
@@ -177,8 +186,8 @@ export function OnboardingForm({ initial, isEdit = false }: Props) {
           02 · Rate Your Attributes
         </p>
         <div className="space-y-5">
-          {ATTRIBUTES.map(({ key, label, abbr, hint }) => {
-            const value = attributes[key];
+          {activeAttrDefs.map(({ key, label, abbr, hint }) => {
+            const value = (activeAttrs as unknown as Record<string, number>)[key] ?? 60;
             const color = attrColor(value);
             return (
               <div key={key} className="rounded-xl border border-navy-border bg-navy-surface p-4">
@@ -206,7 +215,7 @@ export function OnboardingForm({ initial, isEdit = false }: Props) {
                   step={1}
                   value={value}
                   onChange={(e) =>
-                    handleAttrChange(key, parseInt(e.target.value, 10))
+                    handleAttrChange(key as string, parseInt(e.target.value, 10))
                   }
                   className="attr-slider"
                   style={{ background: sliderBackground(value) }}

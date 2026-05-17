@@ -5,11 +5,15 @@ export interface UserDocument extends Omit<IUser, "_id">, Document {}
 
 const AttributesSchema = new Schema(
   {
-    pace: { type: Number, default: 60, min: 40, max: 100 },
-    shooting: { type: Number, default: 60, min: 40, max: 100 },
-    passing: { type: Number, default: 60, min: 40, max: 100 },
-    defending: { type: Number, default: 60, min: 40, max: 100 },
-    physical: { type: Number, default: 60, min: 40, max: 100 },
+    pace:      { type: Number, min: 40, max: 100 },
+    shooting:  { type: Number, min: 40, max: 100 },
+    passing:   { type: Number, min: 40, max: 100 },
+    defending: { type: Number, min: 40, max: 100 },
+    diving:    { type: Number, min: 40, max: 100 },
+    reflex:    { type: Number, min: 40, max: 100 },
+    speed:     { type: Number, min: 40, max: 100 },
+    handling:  { type: Number, min: 40, max: 100 },
+    physical:  { type: Number, min: 40, max: 100 },
   },
   { _id: false }
 );

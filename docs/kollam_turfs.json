@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Quilon Football Club(QFC) Turf",
+    "address": "Kottakkakam ward,Vidya nagar, Kollam, Kerala 691013",
+    "region": "Kollam",
+    "pricePerHour": 1200,
+    "contactNumber": "9876543210",
+    "image": "/turfs/QFC_turf.jpg"
+  },
+  {
+    "name": "Dethan's multisports",
+    "address": "Kottamkara,Kollam, Kerala,691005",
+    "region": "Kollam",
+    "pricePerHour": 1000,
+    "contactNumber": "9876543211",
+    "image": "/turfs/Dethans.jpg"
+  },
+  {
+    "name": "Soccerz-Footaball turf",
+    "address": "Vadakkevila, Kollam, Kerala 691010",
+    "region": "Kollam",
+    "pricePerHour": 1200,
+    "contactNumber": "9876543210",
+    "image": "/turfs/Soccerz.jpg"
+  },
+  {
+    "name": "Taurus sports club",
+    "address": "Taluk kachery,Kollam, Kerala,691001",
+    "region": "Kollam",
+    "pricePerHour": 1000,
+    "contactNumber": "9876543211",
+    "image": "/turfs/Taurus.jpg"
+  },
+  {
+    "name": "Club Vamos",
+    "address": "Bishop Joseph Sapthathi Nagar,Hospital Rd,Kollam, Kerala,691001",
+    "region": "Kollam",
+    "pricePerHour": 1000,
+    "contactNumber": "9876543211",
+    "image": "/turfs/Clubvamos.jpg"
+  }
+]

@@ -12,7 +12,9 @@
       "Bash(ping -n 5 127.0.0.1)",
       "Bash(Start-Sleep -Seconds 5)",
       "Bash(Get-Content \"C:\\\\Users\\\\aa299\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-aa299-Desktop-SquadSync\\\\64752b48-e1ec-4d50-96ba-6cb7f6d7568d\\\\tasks\\\\bn7mllxwm.output\")",
-      "Bash(git *)"
+      "Bash(git *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

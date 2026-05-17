@@ -13,11 +13,15 @@ interface Props {
   existingLobbyId: string | null;
 }
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
 export function DashboardLobbies({ region, initialLobbies, userId: _userId, existingLobbyId }: Props) {
   const router = useRouter();
   const [lobbies, setLobbies] = useState<LobbyListItem[]>(initialLobbies);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [findingGame, setFindingGame] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refreshLobbies = useCallback(async () => {
@@ -29,6 +33,25 @@ export function DashboardLobbies({ region, initialLobbies, userId: _userId, exis
       // Silently fail — user still sees stale list
     }
   }, [region]);
+
+  async function handleDevReset() {
+    if (resetting) return;
+    setResetting(true);
+    setResetMsg(null);
+    try {
+      const res = await fetch("/api/dev/reset", { method: "POST" });
+      const data = await res.json() as { success: boolean; data?: { lobbiesDeleted: number; botUsersDeleted: number; turfsSeeded: number } };
+      if (data.success && data.data) {
+        const { lobbiesDeleted, botUsersDeleted, turfsSeeded } = data.data;
+        setResetMsg(`Cleared ${lobbiesDeleted} lobbies, ${botUsersDeleted} bots. ${turfsSeeded} turfs seeded.`);
+        setLobbies([]);
+      }
+    } catch {
+      setResetMsg("Reset failed — check console.");
+    } finally {
+      setResetting(false);
+    }
+  }
 
   async function handleJoin(lobbyId: string) {
     setJoiningId(lobbyId);
@@ -193,6 +216,30 @@ export function DashboardLobbies({ region, initialLobbies, userId: _userId, exis
           <p className="mt-1 text-xs text-muted-foreground/60">
             Click &quot;Find a Game&quot; to create one and invite others.
           </p>
+        </div>
+      )}
+
+      {IS_DEV && (
+        <div className="rounded-xl border border-dashed border-red-500/30 bg-red-500/5 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">Dev Mode Only</p>
+              <p className="mt-0.5 text-sm font-bold text-white">Reset All Data</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Deletes all lobbies &amp; bot users, re-seeds turfs. Real accounts are kept.
+              </p>
+              {resetMsg && (
+                <p className="mt-1.5 text-[10px] font-semibold text-neon-green">{resetMsg}</p>
+              )}
+            </div>
+            <button
+              onClick={handleDevReset}
+              disabled={resetting}
+              className="shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition-all hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {resetting ? "Resetting…" : "Reset DB"}
+            </button>
+          </div>
         </div>
       )}
     </div>

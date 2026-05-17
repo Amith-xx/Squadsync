@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import Lobby from "@/lib/db/models/Lobby";
 import User from "@/lib/db/models/User";
+import Turf from "@/lib/db/models/Turf";
 import { balanceTeams } from "@/lib/utils/teamBalancer";
 import { getPusherServer, PUSHER_CHANNELS, PUSHER_EVENTS } from "@/lib/pusher";
 import type {
@@ -54,6 +55,12 @@ export async function runTeamBalancing(lobbyId: string): Promise<boolean> {
   const teamAIds = teamA.map((id) => new Types.ObjectId(id));
   const teamBIds = teamB.map((id) => new Types.ObjectId(id));
 
+  // Sample up to 3 candidate turfs for the lobby's region (shuffle for variety)
+  const regionTurfs = await Turf.find({ region: lobby.region }).select("_id").lean();
+  const shuffledTurfs = regionTurfs.sort(() => Math.random() - 0.5);
+  const candidateTurfIds = shuffledTurfs.slice(0, 3).map((t) => t._id as Types.ObjectId);
+  const votingDeadline = new Date(Date.now() + 2 * 60 * 1000); // 2-minute window
+
   // Build a per-player team map for the positional updates inside players[]
   const teamMap: Record<string, "A" | "B"> = {};
   teamA.forEach((id) => { teamMap[id] = "A"; });
@@ -76,6 +83,8 @@ export async function runTeamBalancing(lobbyId: string): Promise<boolean> {
           teamB: teamBIds,
           captainA: new Types.ObjectId(captainA),
           captainB: new Types.ObjectId(captainB),
+          candidateTurfIds,
+          votingDeadline,
           // Assign team field on every player slot
           players: {
             $map: {

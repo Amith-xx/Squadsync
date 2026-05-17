@@ -58,6 +58,8 @@ const LobbySchema = new Schema<LobbyDocument>(
       ref: "Turf",
       default: null,
     },
+    candidateTurfIds: [{ type: Schema.Types.ObjectId, ref: "Turf" }],
+    votingDeadline: { type: Date, default: null },
     scheduledAt: { type: Date, default: null },
     // TTL index: MongoDB auto-deletes documents when expiresAt is reached.
     // Must be UNSET ($unset) when lobby advances beyond 'waiting' status.

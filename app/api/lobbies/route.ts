@@ -81,7 +81,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<L
   // Check the user isn't already in an active lobby
   const existingLobby = await Lobby.findOne({
     "players.userId": new Types.ObjectId(session.user.id),
-    status: { $in: ["waiting", "ready_check", "voting", "confirmed"] },
+    status: { $in: ["waiting", "ready_check", "voting", "confirmed", "active"] },
   }).lean();
 
   if (existingLobby) {
@@ -136,6 +136,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse<L
     teamB: [],
     captainA: null,
     captainB: null,
+    turfVotes: [],
+    selectedTurfId: null,
+    candidateTurfs: [],
+    votingDeadline: null,
+    matchId: null,
     expiresAt: lobby.expiresAt ? lobby.expiresAt.toISOString() : null,
     createdAt: (lobby.createdAt as Date).toISOString(),
   };

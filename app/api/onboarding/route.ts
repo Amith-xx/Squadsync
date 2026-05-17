@@ -27,8 +27,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { position, pace, shooting, passing, defending, physical, region } =
-    body as Record<string, unknown>;
+  const { position, region, ...rest } = body as Record<string, unknown>;
 
   if (!VALID_POSITIONS.includes(position as Position)) {
     return NextResponse.json(
@@ -37,14 +36,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const attrFields = { pace, shooting, passing, defending, physical };
+  const isGK = (position as Position) === "GK";
+  const attrFields = isGK
+    ? { diving: rest.diving, reflex: rest.reflex, speed: rest.speed, handling: rest.handling, physical: rest.physical }
+    : { pace: rest.pace, shooting: rest.shooting, passing: rest.passing, defending: rest.defending, physical: rest.physical };
+
   for (const [key, val] of Object.entries(attrFields)) {
     if (typeof val !== "number" || !Number.isInteger(val) || val < 40 || val > 100) {
       return NextResponse.json(
-        {
-          success: false,
-          error: `Attribute "${key}" must be an integer between 40 and 100.`,
-        },
+        { success: false, error: `Attribute "${key}" must be an integer between 40 and 100.` },
         { status: 400 },
       );
     }
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     session.user.id,
     {
       position: position as Position,
-      attributes: { pace, shooting, passing, defending, physical },
+      attributes: attrFields,
       onboardingComplete: true,
       region,
     },

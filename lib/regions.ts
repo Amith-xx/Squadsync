@@ -1,5 +1,5 @@
 export const REGIONS: { code: string; label: string }[] = [
-  { code: "london", label: "London" },
+  { code: "Kollam", label: "Kollam" },
   { code: "manchester", label: "Manchester" },
   { code: "birmingham", label: "Birmingham" },
   { code: "leeds", label: "Leeds" },

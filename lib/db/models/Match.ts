@@ -24,6 +24,7 @@ const PlayerRatingSchema = new Schema(
 const MatchSchema = new Schema<MatchDocument>(
   {
     lobbyId: { type: Schema.Types.ObjectId, ref: "Lobby", required: true, index: true },
+    turfId: { type: Schema.Types.ObjectId, ref: "Turf", default: null },
     teamA: [{ type: Schema.Types.ObjectId, ref: "User" }],
     teamB: [{ type: Schema.Types.ObjectId, ref: "User" }],
     captainA: { type: Schema.Types.ObjectId, ref: "User", required: true },

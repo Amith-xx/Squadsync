@@ -1,28 +1,15 @@
 import type { PlayerWithAttributes, BalancedTeams } from "@/types";
-
-// Placeholder — full Snake Draft implementation goes here on Day 3.
-// Formula from PRD §13:
-//   powerScore = (pace×0.2 + shooting×0.2 + passing×0.2 + defending×0.2 + physical×0.2)
-//                × (0.7 + karmaScore/100 × 0.3)
-//
-// Snake pick order: A B B A A B B A A B
-// Verify: |avgPowerA − avgPowerB| < 10%
+import { isGKAttributes } from "@/types";
 
 export function computePowerScore(
   attributes: PlayerWithAttributes["attributes"],
   karmaScore: number
 ): number {
-  const attributeAvg =
-    (attributes.pace +
-      attributes.shooting +
-      attributes.passing +
-      attributes.defending +
-      attributes.physical) *
-    0.2;
+  const attributeAvg = isGKAttributes(attributes)
+    ? (attributes.diving + attributes.reflex + attributes.speed + attributes.handling + attributes.physical) * 0.2
+    : (attributes.pace + attributes.shooting + attributes.passing + attributes.defending + attributes.physical) * 0.2;
 
-  const karmaMultiplier = 0.7 + (karmaScore / 100) * 0.3;
-
-  return attributeAvg * karmaMultiplier;
+  return attributeAvg * (0.7 + (karmaScore / 100) * 0.3);
 }
 
 export function balanceTeams(players: PlayerWithAttributes[]): BalancedTeams {

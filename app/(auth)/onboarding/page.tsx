@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db/connect";
 import User from "@/lib/db/models/User";
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm";
-import type { Position, PlayerAttributes } from "@/types";
+import type { Position, OutfieldAttributes, GKAttributes } from "@/types";
 
 export default async function OnboardingPage({
   searchParams,
@@ -27,7 +27,7 @@ export default async function OnboardingPage({
 
   const initial = {
     position: user?.position as Position | undefined,
-    attributes: user?.attributes as Partial<PlayerAttributes> | undefined,
+    attributes: user?.attributes as (Partial<OutfieldAttributes> & Partial<GKAttributes>) | undefined,
     region: user?.region ?? undefined,
   };
 

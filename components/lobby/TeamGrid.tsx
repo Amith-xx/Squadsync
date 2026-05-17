@@ -64,46 +64,44 @@ function PlayerCard({
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all animate-fade-in-up`}
+      className={`rounded-xl border px-3 py-2.5 flex items-center gap-3 w-full animate-fade-in-up ${borderClass}`}
       style={{ animationDelay: `${index * 60}ms`, opacity: 0, animationFillMode: "forwards" }}
     >
-      <div className={`rounded-xl border px-3 py-2.5 flex items-center gap-3 w-full ${borderClass}`}>
-        {/* Rating bubble */}
-        <div
-          className={`shrink-0 flex h-9 w-9 flex-col items-center justify-center rounded-lg font-black tabular-nums ${
-            teamColor === "blue"
-              ? "bg-blue-400/15 text-blue-300"
-              : "bg-red-400/15 text-red-300"
-          }`}
-        >
-          <span className="text-sm leading-none">{displayRating}</span>
-        </div>
+      {/* Rating bubble */}
+      <div
+        className={`shrink-0 flex h-9 w-9 flex-col items-center justify-center rounded-lg font-black tabular-nums ${
+          teamColor === "blue"
+            ? "bg-blue-400/15 text-blue-300"
+            : "bg-red-400/15 text-red-300"
+        }`}
+      >
+        <span className="text-sm leading-none">{displayRating}</span>
+      </div>
 
-        <PlayerAvatar name={player.name} image={player.image} />
+      <PlayerAvatar name={player.name} image={player.image} />
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-bold text-white">{player.name}</span>
-            {isCaptain && (
-              <span className="shrink-0 rounded px-1 py-0 text-[9px] font-black uppercase tracking-wider text-yellow-400 bg-yellow-400/10 border border-yellow-400/30">
-                ★ Captain
-              </span>
-            )}
-          </div>
-          <div className="mt-0.5 flex items-center gap-1.5">
-            {player.position && (
-              <span
-                className={`rounded border px-1 py-0 text-[9px] font-bold uppercase ${
-                  POSITION_COLORS[player.position]
-                }`}
-              >
-                {player.position}
-              </span>
-            )}
-            <span className="text-[10px] text-muted-foreground">
-              {player.karmaScore} karma
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-sm font-bold text-white">{player.name}</span>
+          {isCaptain && (
+            <span className="shrink-0 rounded border border-yellow-400/30 bg-yellow-400/10 px-1 py-0 text-[9px] font-black uppercase tracking-wider text-yellow-400">
+              ★ Captain
             </span>
-          </div>
+          )}
+        </div>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          {player.position && (
+            <span
+              className={`rounded border px-1 py-0 text-[9px] font-bold uppercase ${
+                POSITION_COLORS[player.position]
+              }`}
+            >
+              {player.position}
+            </span>
+          )}
+          <span className="text-[10px] text-muted-foreground">
+            {player.karmaScore} karma
+          </span>
         </div>
       </div>
     </div>

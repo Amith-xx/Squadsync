@@ -20,7 +20,9 @@ interface UsePresenceReturn {
 }
 
 // Tracks which members are currently online in a Pusher presence channel.
-// Distinct from useLobby — this provides the live-who's-connected view.
+// Shares the channel with useLobby — both call subscribe() (idempotent) but
+// only useLobby owns unsubscribe(). On cleanup we only unbind the specific
+// presence handlers so we don't tear down the shared channel.
 export function usePresence(lobbyId: string | null): UsePresenceReturn {
   const [members, setMembers] = useState<PresenceMember[]>([]);
   const [myId, setMyId] = useState<string | null>(null);
@@ -32,26 +34,32 @@ export function usePresence(lobbyId: string | null): UsePresenceReturn {
     const channelName = PUSHER_CHANNELS.lobby(lobbyId);
     const channel = pusher.subscribe(channelName) as PresenceChannel;
 
-    channel.bind("pusher:subscription_succeeded", (data: { me: PresenceMember; members: Record<string, PresenceMember["info"]> }) => {
+    const handleSubscribed = (data: { me: PresenceMember; members: Record<string, PresenceMember["info"]> }) => {
       setMyId(data.me.id);
       const memberList = Object.entries(data.members).map(([id, info]) => ({
         id,
         info,
       }));
       setMembers(memberList);
-    });
+    };
 
-    channel.bind("pusher:member_added", (member: PresenceMember) => {
-      setMembers((prev) => [...prev, member]);
-    });
+    const handleAdded = (member: PresenceMember) => {
+      setMembers((prev) => prev.some((m) => m.id === member.id) ? prev : [...prev, member]);
+    };
 
-    channel.bind("pusher:member_removed", (member: PresenceMember) => {
+    const handleRemoved = (member: PresenceMember) => {
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
-    });
+    };
+
+    channel.bind("pusher:subscription_succeeded", handleSubscribed);
+    channel.bind("pusher:member_added", handleAdded);
+    channel.bind("pusher:member_removed", handleRemoved);
 
     return () => {
-      channel.unbind_all();
-      pusher.unsubscribe(channelName);
+      // Unbind ONLY our own handlers — never unsubscribe (useLobby owns it).
+      channel.unbind("pusher:subscription_succeeded", handleSubscribed);
+      channel.unbind("pusher:member_added", handleAdded);
+      channel.unbind("pusher:member_removed", handleRemoved);
     };
   }, [lobbyId]);
 

@@ -17,12 +17,26 @@ export type Team = "A" | "B";
 
 // ─── Attribute Block ──────────────────────────────────────────────────────────
 
-export interface PlayerAttributes {
+export interface OutfieldAttributes {
   pace: number;
   shooting: number;
   passing: number;
   defending: number;
   physical: number;
+}
+
+export interface GKAttributes {
+  diving: number;
+  reflex: number;
+  speed: number;
+  handling: number;
+  physical: number;
+}
+
+export type PlayerAttributes = OutfieldAttributes | GKAttributes;
+
+export function isGKAttributes(a: PlayerAttributes): a is GKAttributes {
+  return "diving" in a;
 }
 
 // ─── User ─────────────────────────────────────────────────────────────────────
@@ -83,6 +97,8 @@ export interface ILobby {
   captainB: Types.ObjectId | null;
   turfVotes: TurfVote[];
   selectedTurf: Types.ObjectId | null;
+  candidateTurfIds: Types.ObjectId[];
+  votingDeadline: Date | null;
   scheduledAt: Date | null;
   expiresAt?: Date;
   createdAt: Date;
@@ -110,6 +126,11 @@ export interface LobbyClient {
   teamB: string[];
   captainA: string | null;
   captainB: string | null;
+  turfVotes: { turfId: string; userId: string }[];
+  selectedTurfId: string | null;
+  candidateTurfs: TurfClient[];
+  votingDeadline: string | null;
+  matchId: string | null;
   expiresAt: string | null;
   createdAt: string;
 }
@@ -144,6 +165,7 @@ export interface PlayerRating {
 export interface IMatch {
   _id: Types.ObjectId;
   lobbyId: Types.ObjectId;
+  turfId: Types.ObjectId | null;
   teamA: Types.ObjectId[];
   teamB: Types.ObjectId[];
   captainA: Types.ObjectId;
@@ -184,6 +206,62 @@ export interface ITurf {
   region: string;
 }
 
+// ─── Turf (serializable for client) ──────────────────────────────────────────
+
+export interface TurfClient {
+  id: string;
+  name: string;
+  address: string;
+  region: string;
+  images: string[];
+  pricePerHour: number;
+  contactNumber: string;
+}
+
+// ─── Match (client-safe serialized) ──────────────────────────────────────────
+
+export interface MatchScoreReportClient {
+  goalsA: number;
+  goalsB: number;
+  submittedAt: string;
+}
+
+export interface MatchPlayerClient {
+  userId: string;
+  name: string;
+  image: string;
+  position: Position | null;
+  team: Team;
+  karmaScore: number;
+}
+
+export interface MatchClient {
+  id: string;
+  lobbyId: string;
+  turfId: string | null;
+  teamA: string[];
+  teamB: string[];
+  captainA: string;
+  captainB: string;
+  scoreReportA: MatchScoreReportClient | null;
+  scoreReportB: MatchScoreReportClient | null;
+  finalScore: { teamA: number; teamB: number } | null;
+  status: MatchStatus;
+  attendanceConfirmed: string[];
+  myRatings: string[];
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface MatchHistoryItem {
+  id: string;
+  status: MatchStatus;
+  finalScore: { teamA: number; teamB: number } | null;
+  team: Team | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
 // ─── Pusher Event Payloads ────────────────────────────────────────────────────
 
 export interface PusherPlayerJoinedPayload {
@@ -203,6 +281,7 @@ export interface PusherPlayerReadyPayload {
 }
 
 export interface PusherChatMessagePayload {
+  messageId: string;
   userId: string;
   name: string;
   image: string;
@@ -226,6 +305,17 @@ export interface PusherVoteCastPayload {
 export interface PusherScoreSubmittedPayload {
   captainId: string;
   team: Team;
+  goalsA: number;
+  goalsB: number;
+}
+
+export interface PusherMatchReadyPayload {
+  matchId: string;
+}
+
+export interface PusherKarmaUpdatedPayload {
+  userId: string;
+  newKarma: number;
 }
 
 export interface PusherLobbyStatusChangedPayload {
@@ -271,6 +361,37 @@ export interface ApiError {
 }
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
+
+// ─── Football Memory Vault ────────────────────────────────────────────────────
+
+export interface IMemory {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  teamA: string;
+  teamB: string;
+  scoreA: number;
+  scoreB: number;
+  playerOfMatch: string;
+  competition: string;
+  matchDate: Date | null;
+  favoriteMoment: string;
+  note: string;
+  createdAt: Date;
+}
+
+export interface MemoryClient {
+  id: string;
+  teamA: string;
+  teamB: string;
+  scoreA: number;
+  scoreB: number;
+  playerOfMatch: string;
+  competition: string;
+  matchDate: string | null;
+  favoriteMoment: string;
+  note: string;
+  createdAt: string;
+}
 
 // ─── Next Auth Session Extension ─────────────────────────────────────────────
 

@@ -3,9 +3,11 @@ import { Types } from "mongoose";
 import { auth } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db/connect";
 import Lobby from "@/lib/db/models/Lobby";
+import Match from "@/lib/db/models/Match";
 import User from "@/lib/db/models/User";
+import Turf from "@/lib/db/models/Turf";
 import { LobbyClient } from "@/components/lobby/LobbyClient";
-import type { LobbyClient as LobbyClientType, LobbyPlayerClient, Position, Team } from "@/types";
+import type { LobbyClient as LobbyClientType, LobbyPlayerClient, Position, Team, TurfClient } from "@/types";
 
 export default async function LobbyPage({
   params,
@@ -46,6 +48,32 @@ export default async function LobbyPage({
     };
   });
 
+  // Populate candidate turfs
+  const candidateTurfDocs = lobby.candidateTurfIds?.length
+    ? await Turf.find({ _id: { $in: lobby.candidateTurfIds } })
+        .select("name address region images pricePerHour contactNumber")
+        .lean()
+    : [];
+
+  const candidateTurfs: TurfClient[] = candidateTurfDocs.map((t) => ({
+    id: (t._id as Types.ObjectId).toString(),
+    name: t.name,
+    address: t.address,
+    region: t.region,
+    images: t.images ?? [],
+    pricePerHour: t.pricePerHour,
+    contactNumber: t.contactNumber ?? "",
+  }));
+
+  // Find match for this lobby if it exists (status active or completed)
+  let matchId: string | null = null;
+  if (["active", "completed", "confirmed"].includes(lobby.status)) {
+    const existingMatch = await Match.findOne({ lobbyId: lobby._id })
+      .select("_id")
+      .lean();
+    if (existingMatch) matchId = existingMatch._id.toString();
+  }
+
   const lobbyData: LobbyClientType = {
     id: lobby._id.toString(),
     status: lobby.status,
@@ -55,6 +83,14 @@ export default async function LobbyPage({
     teamB: (lobby.teamB ?? []).map((tid) => tid.toString()),
     captainA: lobby.captainA ? lobby.captainA.toString() : null,
     captainB: lobby.captainB ? lobby.captainB.toString() : null,
+    turfVotes: (lobby.turfVotes ?? []).map((v) => ({
+      turfId: v.turfId.toString(),
+      userId: v.userId.toString(),
+    })),
+    selectedTurfId: lobby.selectedTurf ? lobby.selectedTurf.toString() : null,
+    candidateTurfs,
+    votingDeadline: lobby.votingDeadline ? lobby.votingDeadline.toISOString() : null,
+    matchId,
     expiresAt: lobby.expiresAt ? lobby.expiresAt.toISOString() : null,
     createdAt: (lobby.createdAt as Date).toISOString(),
   };
